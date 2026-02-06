@@ -1,110 +1,239 @@
-/* global Office, Excel */
-let ready = false;
+// 設定保存用キー
+const SETTINGS_KEY = "pageSearchSettings_v1";
 
-function $(id) { return document.getElementById(id); }
-
-function normalize5(str) {
-  const s = String(str ?? "").trim();
-  if (s === "") return "";
-  // Numeric-ish (e.g., 12345, 12345.0)
-  if (/^\d+(\.0+)?$/.test(s)) {
-    return String(parseInt(s, 10)).padStart(5, "0");
-  }
-  // Already looks like 5-digit string
-  if (/^\d{1,5}$/.test(s)) return s.padStart(5, "0");
-  return s;
-}
-
-function setError(msg) {
-  const el = $("err");
-  if (!msg) { el.style.display = "none"; el.textContent = ""; return; }
-  el.textContent = msg;
-  el.style.display = "block";
-}
-
-function setStatus(msg) {
-  $("status").textContent = msg;
-}
-
-function setResults(hits) {
-  $("hits").textContent = String(hits);
-  const val = hits / 18;
-  // show with up to 4 decimals but trim trailing zeros
-  const s = val.toFixed(4).replace(/\.?(0+)$/, (m, zs) => m.startsWith(".") ? "" : "");
-  $("pages").textContent = s;
-}
-
-async function countInActiveSheetA(query5) {
-  return Excel.run(async (context) => {
-    const sheet = context.workbook.worksheets.getActiveWorksheet();
-    const used = sheet.getUsedRangeOrNullObject();
-    used.load(["rowCount", "isNullObject"]);
-    await context.sync();
-
-    if (used.isNullObject || used.rowCount === 0) {
-      return { hits: 0, rows: 0 };
-    }
-
-    const colA = sheet.getRangeByIndexes(0, 0, used.rowCount, 1);
-    colA.load("values");
-    await context.sync();
-
-    const values = colA.values;
-    let hits = 0;
-    for (let i = 0; i < values.length; i++) {
-      const cell = values[i][0];
-      if (cell === null || cell === undefined || cell === "") continue;
-      const norm = normalize5(cell);
-      if (norm === query5) hits++;
-    }
-    return { hits, rows: values.length };
-  });
-}
-
-async function onRun() {
-  setError("");
-  const q = normalize5($("query").value);
-  if (!/^\d{5}$/.test(q)) {
-    setError("5桁の数字を入力してください（例：06328）。");
-    return;
-  }
-
-  $("run").disabled = true;
-  setStatus("カウント中…");
-  const t0 = performance.now();
-
+function loadSettings() {
   try {
-    const { hits, rows } = await countInActiveSheetA(q);
-    setResults(hits);
-    const ms = Math.round(performance.now() - t0);
-    setStatus(`完了：A列の使用範囲 ${rows} 行をチェック（${ms}ms）`);
+    const raw = window.localStorage.getItem(SETTINGS_KEY);
+    if (!raw) {
+      return {
+        columnLetter: "A",
+        pageSize: 18,
+        skipRows: 0,
+      };
+    }
+    const obj = JSON.parse(raw);
+    return {
+      columnLetter: obj.columnLetter || "A",
+      pageSize: Number(obj.pageSize) || 18,
+      skipRows: Number(obj.skipRows) || 0,
+    };
   } catch (e) {
-    console.error(e);
-    setError("エラー：Excelとの通信に失敗しました。アドインを閉じて開き直すと直ることがあります。");
-    setStatus("—");
-  } finally {
-    $("run").disabled = false;
+    console.log("settings load error", e);
+    return {
+      columnLetter: "A",
+      pageSize: 18,
+      skipRows: 0,
+    };
   }
 }
 
-function onInput() {
-  setError("");
-  const q = normalize5($("query").value);
-  $("run").disabled = !ready || !/^\d{5}$/.test(q);
+function saveSettings(settings) {
+  try {
+    window.localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  } catch (e) {
+    console.log("settings save error", e);
+  }
 }
 
+// 列名（A, B, AA...）→ 0始まりの列インデックス
+function columnLetterToIndex(letter) {
+  if (!letter) return 0;
+  const s = letter.toUpperCase().trim();
+  let col = 0;
+  for (let i = 0; i < s.length; i++) {
+    const code = s.charCodeAt(i);
+    if (code < 65 || code > 90) {
+      // A〜Z以外 → とりあえず0列（A列）扱い
+      return 0;
+    }
+    col = col * 26 + (code - 64); // A=1, B=2 ...
+  }
+  return col - 1; // 0始まり
+}
+
+function initUi() {
+  const searchInput = document.getElementById("searchTerm");
+  const searchButton = document.getElementById("searchButton");
+  const statusMessage = document.getElementById("statusMessage");
+  const resultSummary = document.getElementById("resultSummary");
+  const resultDetails = document.getElementById("resultDetails");
+  const resultPages = document.getElementById("resultPages");
+
+  const toggleSettingsButton = document.getElementById("toggleSettings");
+  const settingsPanel = document.getElementById("settingsPanel");
+  const columnInput = document.getElementById("columnInput");
+  const pageSizeInput = document.getElementById("pageSizeInput");
+  const skipRowsInput = document.getElementById("skipRowsInput");
+
+  // 設定読み込み＆UI反映
+  const settings = loadSettings();
+  columnInput.value = settings.columnLetter;
+  pageSizeInput.value = settings.pageSize;
+  skipRowsInput.value = settings.skipRows;
+
+  function updateSettingsFromInputs() {
+    const newSettings = {
+      columnLetter: columnInput.value.trim() || "A",
+      pageSize: Number(pageSizeInput.value) || 18,
+      skipRows: Number(skipRowsInput.value) || 0,
+    };
+    saveSettings(newSettings);
+    return newSettings;
+  }
+
+  // 設定エリア表示/非表示
+  let settingsVisible = false;
+  toggleSettingsButton.addEventListener("click", () => {
+    settingsVisible = !settingsVisible;
+    if (settingsVisible) {
+      settingsPanel.classList.remove("hidden");
+      toggleSettingsButton.textContent = "▼ 設定を隠す";
+    } else {
+      settingsPanel.classList.add("hidden");
+      toggleSettingsButton.textContent = "▶ 設定を表示";
+    }
+  });
+
+  // 検索実行処理
+  async function runSearch() {
+    const termRaw = searchInput.value.trim();
+    if (!termRaw) {
+      statusMessage.textContent = "検索値を入力してください。";
+      return;
+    }
+
+    const currentSettings = updateSettingsFromInputs();
+    const searchValue = termRaw;
+    const columnLetter = currentSettings.columnLetter;
+    const pageSize = currentSettings.pageSize;
+    const skipRows = currentSettings.skipRows;
+
+    statusMessage.textContent = "検索中…";
+    resultSummary.textContent = "";
+    resultDetails.textContent = "";
+    resultPages.textContent = "";
+
+    try {
+      await Excel.run(async (context) => {
+        const sheet = context.workbook.worksheets.getActiveWorksheet();
+        const usedRange = sheet.getUsedRange();
+        usedRange.load(["values", "rowCount", "columnCount", "rowIndex", "columnIndex"]);
+        await context.sync();
+
+        const values = usedRange.values;
+        const rowCount = usedRange.rowCount;
+        const colCount = usedRange.columnCount;
+        const startRowIndex = usedRange.rowIndex;    // 0ベース
+        const startColIndex = usedRange.columnIndex; // 0ベース
+
+        const targetColIndex = columnLetterToIndex(columnLetter);
+        const colOffset = targetColIndex - startColIndex;
+
+        const hits = [];
+
+        if (colOffset < 0 || colOffset >= colCount) {
+          // 使用範囲の外を指定していた場合 → ヒット0
+          // 何もしない
+        } else {
+          for (let r = 0; r < rowCount; r++) {
+            const actualRowNumber = startRowIndex + r + 1; // Excel行番号（1始まり）
+            const cellValue = values[r][colOffset];
+
+            if (actualRowNumber <= skipRows) {
+              continue; // 除外する先頭行
+            }
+
+            // 空セルはスキップ
+            if (cellValue === null || cellValue === undefined) continue;
+
+            const cellText = String(cellValue).trim();
+
+            if (cellText === searchValue) {
+              const logicalRow = actualRowNumber - skipRows; // 有効行番号（1始まり）
+              const page = Math.ceil(logicalRow / pageSize);
+              hits.push({
+                actualRow: actualRowNumber,
+                logicalRow,
+                page,
+              });
+            }
+          }
+        }
+
+        // 結果反映
+        if (hits.length === 0) {
+          statusMessage.textContent = "";
+          resultSummary.textContent = "ヒットなし";
+          resultDetails.textContent = "";
+          resultPages.textContent = "";
+          return;
+        }
+
+        statusMessage.textContent = "";
+
+        // サマリ
+        resultSummary.textContent = `ヒット: ${hits.length} 件`;
+
+        // 各ヒット一覧
+        const detailLines = hits.map((h) => {
+          return `行 ${h.actualRow}（有効行 ${h.logicalRow}） → ${h.page} ページ目`;
+        });
+        resultDetails.innerHTML = detailLines
+          .map((line) => `<div class="result-line">${line}</div>`)
+          .join("");
+
+        // ページごとの集計
+        const byPage = {};
+        for (const h of hits) {
+          if (!byPage[h.page]) {
+            byPage[h.page] = {
+              count: 0,
+              rows: [],
+            };
+          }
+          byPage[h.page].count++;
+          byPage[h.page].rows.push(h.actualRow);
+        }
+
+        const sortedPages = Object.keys(byPage)
+          .map((p) => Number(p))
+          .sort((a, b) => a - b);
+
+        const pageLines = sortedPages.map((p) => {
+          const info = byPage[p];
+          const rowsText = info.rows.join(", ");
+          return `${p} ページ目: ${info.count} 件（行 ${rowsText}）`;
+        });
+
+        resultPages.innerHTML = pageLines
+          .map((line) => `<div class="result-line">${line}</div>`)
+          .join("");
+      });
+    } catch (error) {
+      console.error(error);
+      statusMessage.textContent = "エラーが発生しました。コンソールを確認してください。";
+    }
+  }
+
+  // ボタンクリック
+  searchButton.addEventListener("click", () => {
+    runSearch();
+  });
+
+  // Enter押下で検索
+  searchInput.addEventListener("keydown", (ev) => {
+    if (ev.key === "Enter") {
+      runSearch();
+    }
+  });
+
+  // 初期フォーカス
+  searchInput.focus();
+}
+
+// Office 初期化
 Office.onReady((info) => {
   if (info.host === Office.HostType.Excel) {
-    ready = true;
-    setStatus("準備OK。番号を入力してください。");
-    $("run").disabled = true;
-    $("query").addEventListener("input", onInput);
-    $("query").addEventListener("keydown", (ev) => {
-      if (ev.key === "Enter") onRun();
-    });
-    $("run").addEventListener("click", onRun);
-    $("query").focus();
-  } else {
-    setStatus("このアドインはExcelでのみ動作します。");
+    initUi();
   }
 });

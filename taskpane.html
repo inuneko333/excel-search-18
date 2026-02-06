@@ -1,68 +1,82 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>検索÷18</title>
+  <title>ページ検索アドイン</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Office.js -->
   <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
-  <style>
-    :root { --bg:#ffffff; --fg:#111827; --muted:#6b7280; --border:#e5e7eb; --primary:#305496; --danger:#b91c1c; }
-    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", sans-serif; margin: 0; background: var(--bg); color: var(--fg); }
-    .wrap { padding: 14px; }
-    .title { display:flex; align-items:center; gap:10px; margin-bottom: 10px; }
-    .badge { width:28px; height:28px; border-radius:6px; background: var(--primary); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; }
-    h1 { font-size: 16px; margin: 0; }
-    .sub { font-size: 12px; color: var(--muted); margin: 6px 0 12px; line-height: 1.35; }
-    .row { display:flex; gap:8px; }
-    input[type="text"] { flex: 1; padding: 10px 10px; border:1px solid var(--border); border-radius:8px; font-size: 14px; }
-    button { padding: 10px 12px; border: 1px solid var(--primary); border-radius: 8px; background: var(--primary); color:#fff; font-weight: 600; cursor:pointer; }
-    button:disabled { opacity: .55; cursor: not-allowed; }
-    .panel { border:1px solid var(--border); border-radius: 10px; padding: 12px; margin-top: 12px; }
-    .kpi { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .kpi .box { border:1px solid var(--border); border-radius:10px; padding:10px; }
-    .label { font-size: 11px; color: var(--muted); }
-    .value { font-size: 20px; font-weight: 700; margin-top: 2px; }
-    .foot { font-size: 11px; color: var(--muted); margin-top: 10px; line-height: 1.35; }
-    .err { color: var(--danger); font-size: 12px; margin-top: 8px; display:none; }
-    .ok { color: var(--muted); font-size: 12px; margin-top: 8px; }
-    code { background:#f3f4f6; padding: 1px 5px; border-radius: 6px; }
-  </style>
+
+  <!-- 簡単なスタイル -->
+  <link rel="stylesheet" href="assets/style.css" />
 </head>
 <body>
-  <div class="wrap">
-    <div class="title">
-      <div class="badge">18</div>
-      <h1>検索 → ヒット件数 ÷ 18</h1>
-    </div>
-    <div class="sub">
-      アクティブシートの <b>A列（使用範囲）</b> を対象に、5桁番号の一致件数を数えます。<br/>
-      同じ番号が連続している前提でもOK（ただし本ツールは単純一致で数えます）。
-    </div>
+  <div id="app">
+    <h2 class="title">ページ検索</h2>
 
-    <div class="row">
-      <input id="query" type="text" inputmode="numeric" placeholder="例：06328" maxlength="5" />
-      <button id="run" disabled>数える</button>
-    </div>
-    <div id="err" class="err"></div>
-    <div id="status" class="ok">準備中…</div>
-
-    <div class="panel">
-      <div class="kpi">
-        <div class="box">
-          <div class="label">ヒット件数</div>
-          <div id="hits" class="value">—</div>
-        </div>
-        <div class="box">
-          <div class="label">ヒット件数 ÷ 18</div>
-          <div id="pages" class="value">—</div>
-        </div>
+    <!-- 検索エリア -->
+    <div class="search-section">
+      <label for="searchTerm" class="label">
+        検索値（5桁など）
+      </label>
+      <div class="search-row">
+        <input id="searchTerm" type="text" class="input" placeholder="例: 12345" />
+        <button id="searchButton" class="button">検索</button>
       </div>
-      <div class="foot">
-        対象列を変えたい場合は、今は <code>A列</code> 固定です（必要なら拡張できます）。
+      <div id="statusMessage" class="status"></div>
+    </div>
+
+    <!-- 結果サマリ -->
+    <div class="result-block">
+      <h3 class="sub-title">結果</h3>
+      <div id="resultSummary" class="result-summary">
+        （まだ検索していません）
+      </div>
+    </div>
+
+    <!-- 各ヒットの詳細 -->
+    <div class="result-block">
+      <h3 class="sub-title">ヒット一覧</h3>
+      <div id="resultDetails" class="result-list"></div>
+    </div>
+
+    <!-- ページごとの集計 -->
+    <div class="result-block">
+      <h3 class="sub-title">ページ別件数</h3>
+      <div id="resultPages" class="result-list"></div>
+    </div>
+
+    <!-- 設定トグル -->
+    <button id="toggleSettings" class="link-button">
+      ▶ 設定を表示
+    </button>
+
+    <!-- 設定パネル -->
+    <div id="settingsPanel" class="settings hidden">
+      <h3 class="sub-title">設定</h3>
+
+      <div class="field">
+        <label for="columnInput" class="label">検索対象列（A, B, C...）</label>
+        <input id="columnInput" type="text" class="input" placeholder="A" />
+      </div>
+
+      <div class="field">
+        <label for="pageSizeInput" class="label">ページあたり行数</label>
+        <input id="pageSizeInput" type="number" class="input" min="1" value="18" />
+      </div>
+
+      <div class="field">
+        <label for="skipRowsInput" class="label">除外する先頭行数</label>
+        <input id="skipRowsInput" type="number" class="input" min="0" value="0" />
+      </div>
+
+      <div class="settings-note">
+        ※ 設定はブラウザに保存されます（次回もそのまま）
       </div>
     </div>
   </div>
 
-  <script src="./taskpane.js"></script>
+  <script src="taskpane.js"></script>
 </body>
 </html>

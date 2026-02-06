@@ -1,0 +1,107 @@
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  margin: 8px;
+  font-size: 13px;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.title {
+  font-size: 18px;
+  margin: 0 0 4px;
+}
+
+.sub-title {
+  font-size: 14px;
+  margin: 8px 0 4px;
+}
+
+.label {
+  display: block;
+  margin-bottom: 2px;
+}
+
+.search-section {
+  margin-bottom: 4px;
+}
+
+.search-row {
+  display: flex;
+  gap: 4px;
+}
+
+.input {
+  flex: 1;
+  padding: 4px 6px;
+  box-sizing: border-box;
+}
+
+.button {
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.link-button {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #0067c0;
+  cursor: pointer;
+  text-align: left;
+  margin-top: 4px;
+}
+
+.link-button:hover {
+  text-decoration: underline;
+}
+
+.status {
+  margin-top: 4px;
+  color: #666;
+  font-size: 12px;
+}
+
+.result-block {
+  border-top: 1px solid #ddd;
+  padding-top: 4px;
+}
+
+.result-summary {
+  font-weight: bold;
+}
+
+.result-list {
+  max-height: 160px;
+  overflow-y: auto;
+  border: 1px solid #eee;
+  padding: 4px;
+  box-sizing: border-box;
+  background: #fafafa;
+}
+
+.result-line {
+  padding: 1px 0;
+}
+
+.settings {
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid #ddd;
+}
+
+.hidden {
+  display: none;
+}
+
+.field {
+  margin-bottom: 4px;
+}
+
+.settings-note {
+  font-size: 11px;
+  color: #666;
+}

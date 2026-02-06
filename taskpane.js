@@ -232,10 +232,16 @@ function initUi() {
     runSearch();
   });
 
+  // Enterで検索
   searchInput.addEventListener("keydown", (ev) => {
     if (ev.key === "Enter") {
       runSearch();
     }
+  });
+
+  // フォーカスしたら中身を全選択 → すぐ上書きできる
+  searchInput.addEventListener("focus", (ev) => {
+    ev.target.select();
   });
 
   searchInput.focus();

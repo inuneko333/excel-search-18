@@ -1,7 +1,14 @@
+* {
+  box-sizing: border-box;
+}
+
 body {
   font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-  margin: 8px;
+  margin: 0;
+  padding: 8px;
+  background: #f5f5f7;
   font-size: 13px;
+  color: #222;
 }
 
 #app {
@@ -10,23 +17,60 @@ body {
   gap: 8px;
 }
 
-.title {
-  font-size: 18px;
-  margin: 0 0 4px;
+/* ヘッダー */
+
+.app-header {
+  margin-bottom: 4px;
 }
 
-.sub-title {
-  font-size: 14px;
-  margin: 8px 0 4px;
+.app-title {
+  font-size: 18px;
+  font-weight: 600;
 }
+
+.app-subtitle {
+  font-size: 11px;
+  color: #666;
+}
+
+/* カード */
+
+.card {
+  background: #ffffff;
+  border-radius: 6px;
+  padding: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.card-header {
+  margin-bottom: 4px;
+}
+
+.card-title {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.card-title.small {
+  font-size: 12px;
+}
+
+.card-subtitle {
+  font-size: 11px;
+  color: #777;
+}
+
+.card-section {
+  margin-top: 4px;
+}
+
+/* 入力・ボタン */
 
 .label {
   display: block;
   margin-bottom: 2px;
-}
-
-.search-section {
-  margin-bottom: 4px;
+  font-size: 11px;
+  color: #555;
 }
 
 .search-row {
@@ -35,73 +79,142 @@ body {
 }
 
 .input {
-  flex: 1;
   padding: 4px 6px;
-  box-sizing: border-box;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  font-size: 13px;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.2);
+}
+
+.main-input {
+  flex: 1;
 }
 
 .button {
-  padding: 4px 8px;
-  cursor: pointer;
-}
-
-.link-button {
-  background: none;
   border: none;
-  padding: 0;
-  color: #0067c0;
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 12px;
   cursor: pointer;
-  text-align: left;
-  margin-top: 4px;
 }
 
-.link-button:hover {
-  text-decoration: underline;
+.button.primary {
+  background: #2563eb;
+  color: #fff;
 }
+
+.button.primary:hover {
+  background: #1d4ed8;
+}
+
+/* ステータス */
 
 .status {
   margin-top: 4px;
-  color: #666;
-  font-size: 12px;
+  font-size: 11px;
+  color: #777;
 }
 
-.result-block {
-  border-top: 1px solid #ddd;
-  padding-top: 4px;
+/* ページ強調 */
+
+.page-highlight {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #e0edff, #f3f7ff);
+  border-radius: 6px;
+  padding: 6px 8px;
+  border: 1px solid #c5d8ff;
 }
 
-.result-summary {
-  font-weight: bold;
+.page-highlight--empty {
+  opacity: 0.7;
 }
+
+.page-highlight-main {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.page-label {
+  font-size: 11px;
+  color: #35549c;
+}
+
+.page-number {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1d4ed8;
+  min-width: 20px;
+  text-align: center;
+}
+
+.page-subinfo {
+  font-size: 11px;
+  color: #344155;
+}
+
+/* メタ情報 */
+
+.meta-row {
+  margin-top: 4px;
+}
+
+.meta-text {
+  font-size: 11px;
+  color: #777;
+}
+
+/* 結果リスト */
 
 .result-list {
   max-height: 160px;
   overflow-y: auto;
-  border: 1px solid #eee;
   padding: 4px;
-  box-sizing: border-box;
+  border-radius: 4px;
+  border: 1px solid #e0e0e0;
   background: #fafafa;
+  font-size: 12px;
 }
 
 .result-line {
   padding: 1px 0;
 }
 
-.settings {
+/* 設定 */
+
+.settings-wrapper {
   margin-top: 4px;
-  padding-top: 4px;
-  border-top: 1px solid #ddd;
 }
 
-.hidden {
-  display: none;
-}
-
-.field {
-  margin-bottom: 4px;
+.settings-card {
+  margin-top: 4px;
 }
 
 .settings-note {
   font-size: 11px;
-  color: #666;
+  color: #777;
+}
+
+.link-button {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 12px;
+  color: #2563eb;
+  cursor: pointer;
+}
+
+.link-button:hover {
+  text-decoration: underline;
+}
+
+.hidden {
+  display: none;
 }

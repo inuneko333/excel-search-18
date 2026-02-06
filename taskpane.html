@@ -4,77 +4,95 @@
   <meta charset="utf-8" />
   <title>ページ検索アドイン</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <!-- Office.js -->
   <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
-
-  <!-- 簡単なスタイル -->
   <link rel="stylesheet" href="assets/style.css" />
 </head>
 <body>
   <div id="app">
-    <h2 class="title">ページ検索</h2>
+    <header class="app-header">
+      <div class="app-title">ページ検索</div>
+      <div class="app-subtitle">5桁コードからページ位置を探す</div>
+    </header>
 
-    <!-- 検索エリア -->
-    <div class="search-section">
-      <label for="searchTerm" class="label">
-        検索値（5桁など）
-      </label>
-      <div class="search-row">
-        <input id="searchTerm" type="text" class="input" placeholder="例: 12345" />
-        <button id="searchButton" class="button">検索</button>
+    <!-- メイン操作カード -->
+    <section class="card">
+      <div class="card-section">
+        <label for="searchTerm" class="label">検索値</label>
+        <div class="search-row">
+          <input id="searchTerm" type="text" class="input main-input" placeholder="例: 12345" />
+          <button id="searchButton" class="button primary">検索</button>
+        </div>
+        <div id="statusMessage" class="status"></div>
       </div>
-      <div id="statusMessage" class="status"></div>
-    </div>
 
-    <!-- 結果サマリ -->
-    <div class="result-block">
-      <h3 class="sub-title">結果</h3>
-      <div id="resultSummary" class="result-summary">
-        （まだ検索していません）
+      <!-- ページ強調表示 -->
+      <div class="card-section">
+        <div id="pageHighlight" class="page-highlight page-highlight--empty">
+          <div class="page-highlight-main">
+            <div class="page-label">ページ</div>
+            <div class="page-number">–</div>
+          </div>
+          <div class="page-subinfo">まだ検索していません</div>
+        </div>
       </div>
-    </div>
 
-    <!-- 各ヒットの詳細 -->
-    <div class="result-block">
-      <h3 class="sub-title">ヒット一覧</h3>
+      <!-- メタ情報（ヒット数など） -->
+      <div class="card-section meta-row">
+        <div id="resultMeta" class="meta-text"></div>
+      </div>
+    </section>
+
+    <!-- 詳細結果 -->
+    <section class="card">
+      <div class="card-header">
+        <div class="card-title">ヒット一覧</div>
+        <div class="card-subtitle">行とページの対応</div>
+      </div>
       <div id="resultDetails" class="result-list"></div>
-    </div>
+    </section>
 
-    <!-- ページごとの集計 -->
-    <div class="result-block">
-      <h3 class="sub-title">ページ別件数</h3>
+    <!-- ページ別集計 -->
+    <section class="card">
+      <div class="card-header">
+        <div class="card-title">ページ別件数</div>
+        <div class="card-subtitle">どのページに何件あるか</div>
+      </div>
       <div id="resultPages" class="result-list"></div>
-    </div>
+    </section>
 
-    <!-- 設定トグル -->
-    <button id="toggleSettings" class="link-button">
-      ▶ 設定を表示
-    </button>
+    <!-- 設定 -->
+    <section class="settings-wrapper">
+      <button id="toggleSettings" class="link-button">
+        ▶ 詳細設定を表示
+      </button>
 
-    <!-- 設定パネル -->
-    <div id="settingsPanel" class="settings hidden">
-      <h3 class="sub-title">設定</h3>
+      <div id="settingsPanel" class="settings hidden">
+        <div class="card settings-card">
+          <div class="card-header">
+            <div class="card-title small">詳細設定</div>
+          </div>
 
-      <div class="field">
-        <label for="columnInput" class="label">検索対象列（A, B, C...）</label>
-        <input id="columnInput" type="text" class="input" placeholder="A" />
+          <div class="card-section">
+            <label for="columnInput" class="label">検索対象列（A, B, C...）</label>
+            <input id="columnInput" type="text" class="input" placeholder="A" />
+          </div>
+
+          <div class="card-section">
+            <label for="pageSizeInput" class="label">1ページあたりの行数</label>
+            <input id="pageSizeInput" type="number" class="input" min="1" value="18" />
+          </div>
+
+          <div class="card-section">
+            <label for="skipRowsInput" class="label">除外する先頭行数</label>
+            <input id="skipRowsInput" type="number" class="input" min="0" value="0" />
+          </div>
+
+          <div class="card-section settings-note">
+            ※ 設定はブラウザに保存されます
+          </div>
+        </div>
       </div>
-
-      <div class="field">
-        <label for="pageSizeInput" class="label">ページあたり行数</label>
-        <input id="pageSizeInput" type="number" class="input" min="1" value="18" />
-      </div>
-
-      <div class="field">
-        <label for="skipRowsInput" class="label">除外する先頭行数</label>
-        <input id="skipRowsInput" type="number" class="input" min="0" value="0" />
-      </div>
-
-      <div class="settings-note">
-        ※ 設定はブラウザに保存されます（次回もそのまま）
-      </div>
-    </div>
+    </section>
   </div>
 
   <script src="taskpane.js"></script>

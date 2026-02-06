@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8" />
-  <title>ページ検索アドイン</title>
+  <title>検索アドイン</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
   <link rel="stylesheet" href="assets/style.css" />
@@ -10,8 +10,7 @@
 <body>
   <div id="app">
     <header class="app-header">
-      <div class="app-title">ページ検索</div>
-      <div class="app-subtitle">5桁コードからページ位置を探す</div>
+      <div class="app-title">検索アドイン</div>
     </header>
 
     <!-- メイン操作カード -->
@@ -35,18 +34,12 @@
           <div class="page-subinfo">まだ検索していません</div>
         </div>
       </div>
-
-      <!-- メタ情報（ヒット数など） -->
-      <div class="card-section meta-row">
-        <div id="resultMeta" class="meta-text"></div>
-      </div>
     </section>
 
-    <!-- 詳細結果 -->
+    <!-- 詳細結果：ヒット一覧 -->
     <section class="card">
       <div class="card-header">
         <div class="card-title">ヒット一覧</div>
-        <div class="card-subtitle">行とページの対応</div>
       </div>
       <div id="resultDetails" class="result-list"></div>
     </section>
@@ -55,7 +48,6 @@
     <section class="card">
       <div class="card-header">
         <div class="card-title">ページ別件数</div>
-        <div class="card-subtitle">どのページに何件あるか</div>
       </div>
       <div id="resultPages" class="result-list"></div>
     </section>
@@ -93,6 +85,10 @@
         </div>
       </div>
     </section>
+
+    <footer class="app-footer">
+      ページ検索 – 5桁コードからページ位置を探す
+    </footer>
   </div>
 
   <script src="taskpane.js"></script>

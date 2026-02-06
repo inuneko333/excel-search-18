@@ -20,17 +20,12 @@ body {
 /* ヘッダー */
 
 .app-header {
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .app-title {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
-}
-
-.app-subtitle {
-  font-size: 11px;
-  color: #666;
 }
 
 /* カード */
@@ -55,15 +50,6 @@ body {
   font-size: 12px;
 }
 
-.card-subtitle {
-  font-size: 11px;
-  color: #777;
-}
-
-.card-section {
-  margin-top: 4px;
-}
-
 /* 入力・ボタン */
 
 .label {
@@ -79,7 +65,7 @@ body {
 }
 
 .input {
-  padding: 4px 6px;
+  padding: 6px 8px;
   border-radius: 4px;
   border: 1px solid #ccc;
   font-size: 13px;
@@ -93,14 +79,17 @@ body {
 
 .main-input {
   flex: 1;
+  font-size: 16px;
+  padding: 8px 10px;
 }
 
 .button {
   border: none;
   border-radius: 4px;
-  padding: 4px 10px;
-  font-size: 12px;
+  padding: 8px 10px;
+  font-size: 13px;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .button.primary {
@@ -148,27 +137,16 @@ body {
 }
 
 .page-number {
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 700;
   color: #1d4ed8;
-  min-width: 20px;
+  min-width: 24px;
   text-align: center;
 }
 
 .page-subinfo {
   font-size: 11px;
   color: #344155;
-}
-
-/* メタ情報 */
-
-.meta-row {
-  margin-top: 4px;
-}
-
-.meta-text {
-  font-size: 11px;
-  color: #777;
 }
 
 /* 結果リスト */
@@ -190,7 +168,7 @@ body {
 /* 設定 */
 
 .settings-wrapper {
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
 .settings-card {
@@ -217,4 +195,12 @@ body {
 
 .hidden {
   display: none;
+}
+
+/* フッター */
+
+.app-footer {
+  margin-top: 4px;
+  font-size: 10px;
+  color: #888;
 }

@@ -29,7 +29,7 @@ function saveSettings(settings) {
   try {
     window.localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
   } catch {
-    // 無視してOK
+    // noop
   }
 }
 
@@ -45,7 +45,7 @@ function columnLetterToIndex(letter) {
     }
     col = col * 26 + (code - 64);
   }
-  return col - 1; // 0基準
+  return col - 1;
 }
 
 function initUi() {
@@ -53,7 +53,6 @@ function initUi() {
   const searchButton = document.getElementById("searchButton");
   const statusMessage = document.getElementById("statusMessage");
   const pageHighlight = document.getElementById("pageHighlight");
-  const resultMeta = document.getElementById("resultMeta");
   const resultDetails = document.getElementById("resultDetails");
   const resultPages = document.getElementById("resultPages");
 
@@ -63,7 +62,6 @@ function initUi() {
   const pageSizeInput = document.getElementById("pageSizeInput");
   const skipRowsInput = document.getElementById("skipRowsInput");
 
-  // 設定読み込み
   const settings = loadSettings();
   columnInput.value = settings.columnLetter;
   pageSizeInput.value = settings.pageSize;
@@ -92,7 +90,7 @@ function initUi() {
     }
   });
 
-  // ページ強調パネルを更新
+  // ページ強調パネル更新
   function renderPageHighlight(firstHit, hitCount) {
     const numberEl = pageHighlight.querySelector(".page-number");
     const subinfoEl = pageHighlight.querySelector(".page-subinfo");
@@ -106,8 +104,7 @@ function initUi() {
 
     pageHighlight.classList.remove("page-highlight--empty");
     numberEl.textContent = firstHit.page;
-    subinfoEl.textContent =
-      `最初のヒット: 行 ${firstHit.actualRow}（有効行 ${firstHit.logicalRow}） / ヒット ${hitCount} 件`;
+    subinfoEl.textContent = `ヒット: ${hitCount} 件`;
   }
 
   async function runSearch() {
@@ -124,7 +121,6 @@ function initUi() {
     const skipRows = currentSettings.skipRows;
 
     statusMessage.textContent = "検索中…";
-    resultMeta.textContent = "";
     resultDetails.innerHTML = "";
     resultPages.innerHTML = "";
     renderPageHighlight(null, 0);
@@ -139,8 +135,8 @@ function initUi() {
         const values = usedRange.values;
         const rowCount = usedRange.rowCount;
         const colCount = usedRange.columnCount;
-        const startRowIndex = usedRange.rowIndex;    // 0ベース
-        const startColIndex = usedRange.columnIndex; // 0ベース
+        const startRowIndex = usedRange.rowIndex;
+        const startColIndex = usedRange.columnIndex;
 
         const targetColIndex = columnLetterToIndex(columnLetter);
         const colOffset = targetColIndex - startColIndex;
@@ -149,7 +145,7 @@ function initUi() {
 
         if (colOffset >= 0 && colOffset < colCount) {
           for (let r = 0; r < rowCount; r++) {
-            const actualRowNumber = startRowIndex + r + 1; // Excel行番号（1始まり）
+            const actualRowNumber = startRowIndex + r + 1; // Excel行番号
             if (actualRowNumber <= skipRows) continue;
 
             const cellValue = values[r][colOffset];
@@ -157,32 +153,29 @@ function initUi() {
 
             const cellText = String(cellValue).trim();
             if (cellText === searchValue) {
-              const logicalRow = actualRowNumber - skipRows; // 有効行（1始まり）
+              const logicalRow = actualRowNumber - skipRows;
               const page = Math.ceil(logicalRow / pageSize);
               hits.push({
                 actualRow: actualRowNumber,
-                logicalRow,
                 page,
               });
             }
           }
         }
 
-        // ヒットなし
         if (hits.length === 0) {
           statusMessage.textContent = "";
           renderPageHighlight(null, 0);
-          resultMeta.textContent = "";
           resultDetails.textContent = "";
           resultPages.textContent = "";
           return;
         }
 
-        // 先頭ヒット（いちばん上）
+        // いちばん上のヒット
         hits.sort((a, b) => a.actualRow - b.actualRow);
         const firstHit = hits[0];
 
-        // 先頭ヒットのセルへジャンプ
+        // ジャンプ
         const upperColumnLetter = (columnLetter || "A").toUpperCase().trim() || "A";
         const firstAddress = `${upperColumnLetter}${firstHit.actualRow}`;
         const firstRange = sheet.getRange(firstAddress);
@@ -191,13 +184,9 @@ function initUi() {
         // ページ強調
         renderPageHighlight(firstHit, hits.length);
 
-        // メタ情報（小さめ）
-        resultMeta.textContent =
-          `列: ${upperColumnLetter} / 除外行: ${skipRows} / 1ページ: ${pageSize} 行`;
-
-        // ヒット一覧
+        // ヒット一覧（行とページだけ）
         const detailLines = hits.map((h) => {
-          return `行 ${h.actualRow}（有効行 ${h.logicalRow}） → ${h.page} ページ目`;
+          return `行 ${h.actualRow} → ${h.page} ページ目`;
         });
         resultDetails.innerHTML = detailLines
           .map((line) => `<div class="result-line">${line}</div>`)
@@ -239,19 +228,16 @@ function initUi() {
     }
   }
 
-  // ボタンクリック
   searchButton.addEventListener("click", () => {
     runSearch();
   });
 
-  // Enterで検索
   searchInput.addEventListener("keydown", (ev) => {
     if (ev.key === "Enter") {
       runSearch();
     }
   });
 
-  // 初期フォーカス
   searchInput.focus();
 }
 
